@@ -2,13 +2,14 @@ using System;  // 包含通用 C# 庫
 using System.Collections.Generic;  // 包含集合型別相關的 C# 庫
 using System.Linq;  // 包含 LINQ 相關的 C# 庫
 using System.Reflection;  // 包含反射相關的 C# 庫
+using System.Text.Json;
 using System.Threading.Tasks;  // 包含多執行緒相關的 C# 庫
 using com.emecca.model;  // 引入 com.emecca.model 命名空間，用來引用模型
 using com.emecca.service;  // 引入 com.emecca.service 命名空間，用來引用服務
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;  // 引入 ASP.NET Core 的 MVC 框架
 using Newtonsoft.Json;  // 引入 Newtonsoft.Json 庫，用來處理 JSON 格式
-
+using Json = System.Text.Json.JsonSerializer;
 
 namespace com.emecca.controller
 {
@@ -46,8 +47,7 @@ namespace com.emecca.controller
                    else
                    {
                         args.Add(param.Value);
-                   }
-                    
+                   }                
                 }
             }
 
@@ -57,14 +57,56 @@ namespace com.emecca.controller
         [HttpPost("{service}/{method}")]
         public IActionResult Post(string service, string method, [FromBody] object? parametersObject)
         {
-            //先限定只能傳入單一物件，不要傳入陣列
-            List<object> args = new List<object>(); 
-            if (parametersObject != null)
+            System.Console.WriteLine("parameters");
+            System.Console.WriteLine($"Received parameters object type: {parametersObject.GetType()}");
+            System.Console.WriteLine($"Received parameters object value: {parametersObject}");
+
+            List<object> parameters = new List<object>();
+
+            if (parametersObject is Dictionary<string, string> stringDict)
             {
-                args.Add((object)parametersObject);
+                foreach (var item in stringDict)
+                {
+                    parameters.Add(item.Value);
+                }
+            }
+            else if (parametersObject is Dictionary<string, object> objectDict)
+            {
+                foreach (var item in objectDict)
+                {
+                    parameters.Add(item.Value);
+                }
+            }
+            else if (parametersObject is List<object> objectList)
+            {
+                parameters = objectList;
+            }
+            // Add support for JsonElement
+            else if (parametersObject is JsonElement jsonElement)
+            {
+                //var dictionary = Json.Deserialize<Dictionary<string, string>>(jsonElement.GetRawText());
+                //parameters = dictionary.Values.Cast<object>().ToList();
+                parameters.Add((object)parametersObject);
+            }
+            else
+            {
+                return BadRequest("Invalid parameters format.");
             }
 
-            return CallMethod(service, method, args);
+
+            if (parameters == null)
+            {
+                parameters = new List<object>();
+            }
+            else
+            {
+                foreach (var param in parameters)
+                {
+                    System.Console.WriteLine($"Value: {param}");
+                }
+            }
+
+            return CallMethod(service, method, parameters);
         }
         // 呼叫指定的方法
         private IActionResult CallMethod(string serviceName, string methodName, List<object>? parameters)

@@ -130,5 +130,13 @@ namespace EmeccaRestfulApi.Services.Implementations
                 }
             }
         }
+
+        [MethodAlias("test")]
+        public ResponseModel test(EmeUserBasVO vo)
+        {
+            vo.ObjId = vo.ObjId;
+
+            return new ResponseModel { Success = true, Message = "更新成功" };
+        }
     }
 }

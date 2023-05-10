@@ -51,7 +51,8 @@ var app = builder.Build();
 
 // 中間層設定
 //app.UseMiddleware<OAuth2Middleware>();   
-app.UseHttpsRedirection();
+
+//app.UseHttpsRedirection();
 app.UseCors("AllowAllOrigins");
 app.UseAuthorization();
 app.UseRouting();
