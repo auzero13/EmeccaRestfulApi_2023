@@ -103,7 +103,7 @@ namespace com.emecca.controller
                     {
                         var user_info = JsonNode.Parse(req_user_info);
                         var use_no = user_info["cn"].GetValue<string>();
-                        var result = await _context.emeuser_vo.FirstOrDefaultAsync(c => c.UserName == use_no);   //.Take(10)
+                        var result = await _context.emeuser_vo.FirstOrDefaultAsync(c => c.UserName == use_no && c.Status == "Y");   //.Take(10)
                         trans.Commit();
                         return result;
                     }

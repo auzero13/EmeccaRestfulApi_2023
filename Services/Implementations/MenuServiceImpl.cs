@@ -17,43 +17,43 @@ namespace com.emecca.service
         {
             return new List<MenuModel>()
             {
-                new MenuModel
-                {
-                    Id = 1,
-                    Name = "Menu1",
-                    Desc = "Menu1",
-                    Menus = new List<MenuModel>()
-                    {
-                        new MenuModel
-                        {
-                            Id = 2,
-                            Name = "Menu2",
-                            Desc = "Menu2",
-                            MenuItems = new List<MenuItemModel>()
-                            {
-                                new MenuItemModel
-                                {
-                                    Id = 3,
-                                    Name = "MenuItem3",
-                                    Desc = "MenuItem3",
-                                    Url = "/menu1/menu2/menuitem3"
-                                },
-                                new MenuItemModel
-                                {
-                                    Id = 4,
-                                    Name = "MenuItem4",
-                                    Desc = "MenuItem4",
-                                    Url = "/menu1/menu2/menuitem4"
-                                }
-                            }
-                        }
-                    }
-                },
+                //new MenuModel
+                //{
+                //    Id = 1,
+                //    Name = "Menu1",
+                //    Desc = "Menu1",
+                //    Menus = new List<MenuModel>()
+                //    {
+                //        new MenuModel
+                //        {
+                //            Id = 2,
+                //            Name = "Menu2",
+                //            Desc = "Menu2",
+                //            MenuItems = new List<MenuItemModel>()
+                //            {
+                //                new MenuItemModel
+                //                {
+                //                    Id = 3,
+                //                    Name = "MenuItem3",
+                //                    Desc = "MenuItem3",
+                //                    Url = "/menu1/menu2/menuitem3"
+                //                },
+                //                new MenuItemModel
+                //                {
+                //                    Id = 4,
+                //                    Name = "MenuItem4",
+                //                    Desc = "MenuItem4",
+                //                    Url = "/menu1/menu2/menuitem4"
+                //                }
+                //            }
+                //        }
+                //    }
+                //},
                 new MenuModel
                 {
                     Id = 5,
                     Name = "Menu5",
-                    Desc = "Menu5",
+                    Desc = "主要功能介面",
                     MenuItems = new List<MenuItemModel>()
                     {
                         new MenuItemModel
@@ -69,6 +69,13 @@ namespace com.emecca.service
                             Name = "ApplyCheck",
                             Desc = "審核申請",
                             Url = "/applycheck"
+                        },
+                        new MenuItemModel
+                        {
+                            Id = 8,
+                            Name = "UserManager",
+                            Desc = "使用者編輯",
+                            Url = "/usermanager"
                         }
                     }
                 }

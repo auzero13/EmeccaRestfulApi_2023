@@ -14,7 +14,7 @@ using EmeccaRestfulApi.Services.Implementations;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
+builder.Logging.AddLog4Net("log4net.config");
 builder.Services.AddControllers();
 builder.Services.AddScoped<IMenuService, MenuServiceImpl>();
 builder.Services.AddScoped<IEmeccaDeletePacsApplyService, EmeccaDeletePacsApplyServiceImpl>();
