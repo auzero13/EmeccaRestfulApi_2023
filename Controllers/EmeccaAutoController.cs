@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Threading.Tasks;  // 包含多執行緒相關的 C# 庫
 using com.emecca.model;  // 引入 com.emecca.model 命名空間，用來引用模型
 using com.emecca.service;  // 引入 com.emecca.service 命名空間，用來引用服務
+using EmeccaRestfulApi.Middleware;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;  // 引入 ASP.NET Core 的 MVC 框架
 using Newtonsoft.Json;  // 引入 Newtonsoft.Json 庫，用來處理 JSON 格式
@@ -25,6 +26,8 @@ namespace com.emecca.controller
         {
             _serviceProvider = serviceProvider;
         }
+
+        //[ValidateTokenFilter]
         // HTTP GET 請求 service 及 method都是透過別名來抓取
         [HttpGet("{service}/{method}")]
         public IActionResult Get(string service, string method, [FromQuery] Dictionary<string, string> parameters)

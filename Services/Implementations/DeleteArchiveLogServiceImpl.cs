@@ -1,9 +1,11 @@
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text.Json;
 using com.emecca.model;
 using EmeccaRestfulApi.DBContext;
 using EmeccaRestfulApi.Models;
 using EmeccaRestfulApi.Utils;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 namespace com.emecca.service
@@ -41,7 +43,7 @@ namespace com.emecca.service
                     PropertyNameCaseInsensitive = true,
                 };
                 DeleteArchiveLogVO vo = JsonSerializer.Deserialize<DeleteArchiveLogVO>(root.GetRawText(), options);
-
+                _logger.LogInformation("執行影像刪除: "+ vo.AccessionNo);
                 var backup_path = _config["BackupNasPath"];
                 var store_info_list = ea_context.storage_info_vo.Where(a => a.STUDY_UID == vo.StudyUid).ToList();
                 using (var transaction = ea_context.Database.BeginTransaction(System.Data.IsolationLevel.RepeatableRead))
@@ -54,7 +56,7 @@ namespace com.emecca.service
                             foreach (STORAGEINFOVO storage_vo in store_info_list)
                             {
                                 var tmp = @"\\192.168.8.33\d$\Archives\EA4SP22NEW\LIB01\Incoming";
-                                string image_path = Path.Combine(tmp, storage_vo.FILE_PATH);//storage_vo.IncomingPath
+                                string image_path = Path.Combine(storage_vo.IncomingPath, storage_vo.FILE_PATH);//storage_vo.IncomingPath
                                 string targe_path = Path.Combine(backup_path, storage_vo.FILE_PATH);
                                 string directoryPath = Path.GetDirectoryName(targe_path);
                                 if (!Directory.Exists(directoryPath))
@@ -63,31 +65,59 @@ namespace com.emecca.service
                             }
                             int del_count = ea_context.Database.ExecuteSqlRaw(sql, vo.StudyUid);
                         }
+
                         using (var tran2 = _context.Database.BeginTransaction())
                         {
-                            var delete_archive_exsit = _context.delete_archive_log_vo.Find(vo.ObjId);
 
-                            try
+                            var delete_archive_exsit = _context.delete_archive_log_vo.Find(vo.ObjId);
+                            if(delete_archive_exsit==null)
                             {
-                                _context.Entry(delete_archive_exsit).CurrentValues.SetValues(vo);
-                                _context.SaveChanges();
-                                tran2.Commit();
-                                transaction.Commit();
-                                return new ResponseModel { Success = true, Message = "影像審核成功" };
+                                try
+                                {
+                                    vo.ObjId = _generator.NextEmeccaObjectId("API");
+                                    _context.delete_archive_log_vo.Add(vo);
+                                    int result = _context.SaveChanges();
+                                    tran2.Commit();
+                                    transaction.Commit();
+                                    return new ResponseModel { Success = true, Message = "影像直接刪除成功" };
+                                }
+                                catch (Exception ex)
+                                {
+                                    _logger.LogError("直接刪除異常，執行rollback:", ex.Message);
+                                    tran2.Rollback();
+                                    throw ex;
+                                }
+                                finally
+                                { tran2.Dispose(); }
+
                             }
-                            catch (Exception ex)
+                            else
                             {
-                                tran2.Rollback();
-                                throw ex;
+                                try
+                                {
+                                    _context.Entry(delete_archive_exsit).CurrentValues.SetValues(vo);
+                                    _context.SaveChanges();
+                                        tran2.Commit();
+                                    transaction.Commit();
+                                    return new ResponseModel { Success = true, Message = "影像審核成功" };
+                                }
+                                catch (Exception ex)
+                                {
+                                    _logger.LogError("更新審核異常，執行rollback:", ex.Message);
+                                    tran2.Rollback();
+                                    throw ex;
+                                }
+                                finally
+                                {
+                                    tran2.Dispose();
+                                }
                             }
-                            finally
-                            {
-                                tran2.Dispose();
-                            }
+                            
                         }
                     }
                     catch (Exception ex)
                     {
+                        _logger.LogError("刪除異常，執行rollback:", ex.Message);
                         transaction.Rollback();
                         throw ex;
                     }
@@ -115,15 +145,17 @@ namespace com.emecca.service
         [MethodAlias("GetDeleteArchiveLogList")]
         public List<DeleteArchiveLogVO> GetDeleteArchiveLogList(string pat_no, string acc_no, DateTime? str_date, DateTime? end_date, string status)
         {
-            // 在此处添加您的业务逻辑，例如从数据库查询数据
-            // 然后根据查询结果创建并返回 DeleteArchiveLogItem 列表
+
+            var last_date = end_date.Value;
+            last_date = last_date.AddDays(1);
             try
             {
-                var result =  _context.delete_archive_log_vo.Where(c => (string.IsNullOrWhiteSpace(pat_no) || c.PatientNo == pat_no) &&
-                (string.IsNullOrWhiteSpace(acc_no) || c.AccessionNo == acc_no) &&
-                (string.IsNullOrWhiteSpace(status) || c.Status == status) &&
+                var test = _context.delete_archive_log_vo.ToArray();
+                var result = _context.delete_archive_log_vo.Where(c => (string.IsNullOrEmpty(pat_no) || c.PatientNo == pat_no) &&
+                (string.IsNullOrEmpty(acc_no) || c.AccessionNo == acc_no) &&
+                (string.IsNullOrEmpty(status) || c.Status == status) &&
                 (str_date == null || c.ApplicantDateTime >= str_date) &&
-                (end_date == null || c.ApplicantDateTime <= end_date)).ToList();   //.Take(10)
+                (end_date == null || c.ApplicantDateTime < last_date)).ToList();   //.Take(10)
                 return result;
             }
             catch (Exception e)

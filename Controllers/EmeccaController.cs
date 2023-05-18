@@ -32,22 +32,24 @@ namespace com.emecca.controller
         [HttpGet("Callback")]
         public async Task<IActionResult> Callback()
         {
+            var web_host =  _config["ReactAppHost"];
             if (!this.Request.Query.TryGetValue("code", out var code))
                 return this.StatusCode(400);
-            var redirectUrl = @"http://localhost:3000" + "?code=" + code;
+            var redirectUrl = web_host + "?code=" + code;
             return this.Redirect(redirectUrl);
         }
 
         [HttpGet("/Authentication/GetToken")]
         public async Task<string> ExchangeAccessToken(string code)
         {
-            return "ertyuyui";
+            var web_host = _config["ReactAppHost"];
+            //return "KpNongq32Nn1xvj7QqEFRNzEAnaw0mD2nDoksgRvtzw=";
             var client = _clientFactory.CreateClient();
             var oauth_host = _config["OauthHost"];
             var auth_host_id = _config["TokenAuthId"];
             var auth_host_serect = _config["TokenAuthPass"];
             var request = new HttpRequestMessage(HttpMethod.Post, @"https://" + oauth_host + @"/oauth2ServerToken.do");
-            var callback = @"http://localhost:3000";
+            var callback = web_host;
 
             request.Content = new FormUrlEncodedContent(
                new Dictionary<string, string>
@@ -80,8 +82,9 @@ namespace com.emecca.controller
             if (headerValue.ToString() != "")
             {
                 token = headerValue.ToString().Split(' ')[1];
-                var result = await _context.emeuser_vo.FirstOrDefaultAsync(c => c.UserName == "RU");
-                return result;
+                _logger.LogInformation("TOKEN= "+ token);
+                //var result = await _context.emeuser_vo.FirstOrDefaultAsync(c => c.UserName == "RU");
+                //return result;
             }
 
             using var trans = _context.Database.BeginTransaction();
@@ -104,8 +107,11 @@ namespace com.emecca.controller
                         var user_info = JsonNode.Parse(req_user_info);
                         var use_no = user_info["cn"].GetValue<string>();
                         var result = await _context.emeuser_vo.FirstOrDefaultAsync(c => c.UserName == use_no && c.Status == "Y");   //.Take(10)
-                        trans.Commit();
                         return result;
+                        trans.Commit();
+                        //EmeUserBasVO user = new EmeUserBasVO();
+                        //user.UserName = use_no;
+                        //return user;
                     }
                     else
                     {

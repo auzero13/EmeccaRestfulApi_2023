@@ -10,6 +10,7 @@ using EmeccaRestfulApi.DBContext;
 using Microsoft.EntityFrameworkCore;
 using EmeccaRestfulApi.Services.Interfaces;
 using EmeccaRestfulApi.Services.Implementations;
+using EmeccaRestfulApi.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +23,7 @@ builder.Services.AddScoped<IDeleteArchiveLogService, DeleteArchiveLogServiceImpl
 builder.Services.AddScoped<IObjidService, ObjidServiceImpl>();
 builder.Services.AddScoped<IUserBasService, UserBasServiceImpl>();
 
+builder.Services.AddScoped<ValidateTokenFilter>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -53,7 +55,11 @@ var app = builder.Build();
 //app.UseMiddleware<OAuth2Middleware>();   
 
 //app.UseHttpsRedirection();
-app.UseCors("AllowAllOrigins");
+app.UseCors(policy => {
+    policy.AllowAnyOrigin()
+          .AllowAnyMethod()
+          .AllowAnyHeader();
+});
 app.UseAuthorization();
 app.UseRouting();
 app.MapControllers();
