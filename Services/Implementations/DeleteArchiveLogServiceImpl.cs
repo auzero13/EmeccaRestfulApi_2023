@@ -56,7 +56,7 @@ namespace com.emecca.service
                             foreach (STORAGEINFOVO storage_vo in store_info_list)
                             {
                                 var tmp = @"\\192.168.8.33\d$\Archives\EA4SP22NEW\LIB01\Incoming";
-                                string image_path = Path.Combine(storage_vo.IncomingPath, storage_vo.FILE_PATH);//storage_vo.IncomingPath
+                                string image_path = Path.Combine(tmp, storage_vo.FILE_PATH);//storage_vo.IncomingPath
                                 string targe_path = Path.Combine(backup_path, storage_vo.FILE_PATH);
                                 string directoryPath = Path.GetDirectoryName(targe_path);
                                 if (!Directory.Exists(directoryPath))

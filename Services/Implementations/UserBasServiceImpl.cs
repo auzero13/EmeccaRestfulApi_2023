@@ -70,7 +70,7 @@ namespace EmeccaRestfulApi.Services.Implementations
                     if (result > 0)
                     {
                         transaction.Commit();
-                        return new ResponseModel { Success = true, Message = "新增成功" };
+                        return new ResponseModel { Success = true, Message = "新增成功",Data= vo };
                     }
                     else
                     {
@@ -137,6 +137,22 @@ namespace EmeccaRestfulApi.Services.Implementations
             vo.ObjId = vo.ObjId;
 
             return new ResponseModel { Success = true, Message = "更新成功" };
+        }
+
+        [MethodAlias("DBAuthentication")]
+        public ResponseModel UserAuthentication(JsonElement root)
+        {
+            var user_no = root.GetProperty("userName").GetString();
+            var pass_word = root.GetProperty("password").GetString();
+            var result = _context.emeuser_vo.Where(c =>c.UserName == user_no&&c.Password== pass_word).ToList();
+            if(result.Any())
+            {
+                return new ResponseModel { Success = true, Message = "登入成功",Data= result };
+            }
+            else
+            {
+                return new ResponseModel { Success = false, Message = "登入失敗" };
+            }
         }
     }
 }

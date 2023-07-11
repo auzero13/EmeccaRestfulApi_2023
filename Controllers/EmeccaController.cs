@@ -43,7 +43,7 @@ namespace com.emecca.controller
         public async Task<string> ExchangeAccessToken(string code)
         {
             var web_host = _config["ReactAppHost"];
-            //return "KpNongq32Nn1xvj7QqEFRNzEAnaw0mD2nDoksgRvtzw=";
+            return "KpNongq32Nn1xvj7QqEFRNzEAnaw0mD2nDoksgRvtzw=";
             var client = _clientFactory.CreateClient();
             var oauth_host = _config["OauthHost"];
             var auth_host_id = _config["TokenAuthId"];
@@ -83,8 +83,8 @@ namespace com.emecca.controller
             {
                 token = headerValue.ToString().Split(' ')[1];
                 _logger.LogInformation("TOKEN= "+ token);
-                //var result = await _context.emeuser_vo.FirstOrDefaultAsync(c => c.UserName == "RU");
-                //return result;
+                var result = await _context.emeuser_vo.FirstOrDefaultAsync(c => c.UserName == "RU");
+                return result;
             }
 
             using var trans = _context.Database.BeginTransaction();

@@ -12,5 +12,7 @@ namespace EmeccaRestfulApi.Services.Interfaces
         ResponseModel AddUser(JsonElement root);
 
         ResponseModel UpdateUserInfo(JsonElement root);
+
+        ResponseModel UserAuthentication(JsonElement root);
     }
 }
