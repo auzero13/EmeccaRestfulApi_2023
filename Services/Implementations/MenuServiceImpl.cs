@@ -69,15 +69,33 @@ namespace com.emecca.service
                             Name = "ApplyCheck",
                             Desc = "審核申請",
                             Url = "/applycheck"
-                        },
-                        new MenuItemModel
-                        {
-                            Id = 8,
-                            Name = "UserManager",
-                            Desc = "使用者編輯",
-                            Url = "/usermanager"
-                        }
+                        },                        
                     }
+                },
+                new MenuModel
+                {
+                    Id=0,
+                    Name="Stitle",
+                    Desc="",
+                    Menus = new List<MenuModel>()
+                    {
+                        new MenuModel
+                        {
+                            Id = 10,
+                            Name = "Title",
+                            Desc = "設定控制",
+                            MenuItems = new List<MenuItemModel>()
+                            {
+                                new MenuItemModel
+                                {
+                                    Id = 8,
+                                    Name = "UserManager",
+                                    Desc = "使用者編輯",
+                                    Url = "/usermanager"
+                                }
+                            }
+                        }
+                    }                   
                 }
             };
         }
