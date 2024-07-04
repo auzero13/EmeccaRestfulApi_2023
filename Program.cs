@@ -40,6 +40,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddSingleton<EmeccaObjectIdGenerator>();
 builder.Services.AddDbContext<EmeccaDotNetContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")), ServiceLifetime.Scoped);
 builder.Services.AddDbContext<DCMASPEAFContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("AppConnection")), ServiceLifetime.Scoped);
+builder.Services.AddDbContext<DCMASPEAContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("AppConnection2")), ServiceLifetime.Scoped);
 builder.Services.AddHttpClient();
 
 var app = builder.Build();

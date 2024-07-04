@@ -14,18 +14,20 @@ namespace com.emecca.service
     {
         private readonly EmeccaDotNetContext _context;
         private readonly DCMASPEAFContext ea_context;
+        private readonly DCMASPEAContext _ea_back_context;
         private readonly ILogger<DeleteArchiveLogServiceImpl> _logger;
         private readonly IConfiguration _config;
         private readonly EmeccaObjectIdGenerator _generator;
         protected override object GetServiceInstance()
         {
             // 在此处获取您的DeleteArchiveLogService的实例
-            return new DeleteArchiveLogServiceImpl(_context, ea_context, _logger,_config, _generator);
+            return new DeleteArchiveLogServiceImpl(_context, ea_context, _ea_back_context, _logger,_config, _generator);
         }
-        public DeleteArchiveLogServiceImpl(EmeccaDotNetContext context, DCMASPEAFContext context_ea, ILogger<DeleteArchiveLogServiceImpl> logger, IConfiguration config, EmeccaObjectIdGenerator generator)
+        public DeleteArchiveLogServiceImpl(EmeccaDotNetContext context, DCMASPEAFContext context_ea, DCMASPEAContext ea_back_context, ILogger<DeleteArchiveLogServiceImpl> logger, IConfiguration config, EmeccaObjectIdGenerator generator)
         {          
             _context = context;
             ea_context = context_ea;
+            _ea_back_context = ea_back_context;
             _logger = logger;
             _config = config;
             _generator = generator;
@@ -45,7 +47,9 @@ namespace com.emecca.service
                 DeleteArchiveLogVO vo = JsonSerializer.Deserialize<DeleteArchiveLogVO>(root.GetRawText(), options);
                 _logger.LogInformation("執行影像刪除: "+ vo.AccessionNo);
                 var backup_path = _config["BackupNasPath"];
+                var backup_2_path = _config["BackupNas2Path"];
                 var store_info_list = ea_context.storage_info_vo.Where(a => a.STUDY_UID == vo.StudyUid).ToList();
+                var store_info_2_list = _ea_back_context.storage_info_vo.Where(a => a.STUDY_UID == vo.StudyUid).ToList();
                 using (var transaction = ea_context.Database.BeginTransaction(System.Data.IsolationLevel.RepeatableRead))
                 {
                     string sql = @"Delete tblDICOMImage WHERE _Id2 IN ( SELECT Id2 FROM tblDICOMSeries WHERE _Id1 IN ( SELECT Id1 FROM tblDICOMStudy WHERE [0020000D] = {0} ))";
@@ -56,14 +60,26 @@ namespace com.emecca.service
                             foreach (STORAGEINFOVO storage_vo in store_info_list)
                             {
                                 var tmp = @"\\192.168.8.33\d$\Archives\EA4SP22NEW\LIB01\Incoming";
-                                string image_path = Path.Combine(tmp, storage_vo.FILE_PATH);//storage_vo.IncomingPath
+                                string image_path = Path.Combine(storage_vo.IncomingPath, storage_vo.FILE_PATH);//storage_vo.IncomingPath
                                 string targe_path = Path.Combine(backup_path, storage_vo.FILE_PATH);
                                 string directoryPath = Path.GetDirectoryName(targe_path);
                                 if (!Directory.Exists(directoryPath))
                                     Directory.CreateDirectory(directoryPath);
                                 System.IO.File.Copy(image_path, targe_path, true);
                             }
+
+                            foreach (STORAGEINFOVO storage_2_vo in store_info_2_list)
+                            {
+                                var tmp = @"\\192.168.8.33\d$\Archives\EA4SP22NEW\LIB01\Incoming";
+                                string image_path = Path.Combine(storage_2_vo.IncomingPath, storage_2_vo.FILE_PATH);//storage_vo.IncomingPath
+                                string targe_2_path = Path.Combine(backup_2_path, storage_2_vo.FILE_PATH);
+                                string directoryPath = Path.GetDirectoryName(targe_2_path);
+                                if (!Directory.Exists(directoryPath))
+                                    Directory.CreateDirectory(directoryPath);
+                                System.IO.File.Copy(image_path, targe_2_path, true);
+                            }
                             int del_count = ea_context.Database.ExecuteSqlRaw(sql, vo.StudyUid);
+                            int del_2_count = _ea_back_context.Database.ExecuteSqlRaw(sql, vo.StudyUid);
                         }
 
                         using (var tran2 = _context.Database.BeginTransaction())
